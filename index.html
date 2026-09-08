@@ -3,501 +3,946 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>iVIDEO · pro player</title>
-  <!-- Font Awesome 6 (free) -->
+  <title>iVIDEO · neon</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { background: #0a0a0e; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 10px; }
-    /* main app card */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; }
+    body {
+      background: #0b0b12;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    /* main app card - full width, no side padding */
     .app-container {
-      max-width: 520px; width: 100%; background: #14141a; border-radius: 36px;
-      padding: 16px 14px 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-      border: 1px solid #2d2d38; transition: all 0.25s;
+      max-width: 100%;
+      width: 100%;
+      height: 100vh;
+      background: linear-gradient(145deg, #0f0f1a, #1a1a2e);
+      padding: 0;
+      box-shadow: none;
+      border: none;
+      border-radius: 0;
       position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
-    /* theme variants (applied to container) */
-    .app-container.theme-red { background: #1f0f0f; border-color: #b13e3e; }
-    .app-container.theme-blue { background: #0e1724; border-color: #3a6b9b; }
-    .app-container.theme-yellow { background: #1f1a0a; border-color: #b89f3a; }
-    .app-container.theme-green { background: #0d1f12; border-color: #3b8a4a; }
-    .app-container.theme-pink { background: #1f0f1a; border-color: #b3437a; }
-    .app-container.theme-purple { background: #17102b; border-color: #7a4db3; }
-    .app-container.theme-dark { background: #0a0a0c; border-color: #3a3a44; }
+    /* animated neon border - now it's a glowing edge effect */
+    .app-container::before {
+      content: '';
+      position: absolute;
+      top: -2px; left: -2px; right: -2px; bottom: -2px;
+      background: linear-gradient(45deg, #ff00cc, #3333ff, #00ffcc, #ffcc00, #ff00cc);
+      background-size: 400% 400%;
+      border-radius: 0;
+      z-index: -1;
+      opacity: 0.4;
+      animation: neonBorder 6s ease infinite;
+      filter: blur(3px);
+    }
+    @keyframes neonBorder {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
 
-    /* header: title + close */
-    .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .app-title { font-weight: 700; color: #eef2ff; font-size: 20px; letter-spacing: 1px; }
-    .app-title i { color: #6f8eff; margin-right: 6px; }
-    .close-btn { background: #2f2f3d; border: none; color: #d0d6ea; width: 38px; height: 38px; border-radius: 40px; font-size: 18px; cursor: pointer; transition: 0.2s; border: 1px solid #4a4a5e; }
-    .close-btn:hover { background: #4f3f4f; color: #ffbaba; transform: scale(0.94); }
+    /* super thin header */
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 10px;
+      background: rgba(0,0,0,0.2);
+      backdrop-filter: blur(6px);
+      z-index: 20;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      flex-shrink: 0;
+      height: 38px;
+    }
+    .header-btn {
+      background: transparent;
+      border: none;
+      color: #c0c8ff;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 2px 6px;
+      transition: 0.2s;
+      text-shadow: 0 0 10px rgba(100, 150, 255, 0.5);
+    }
+    .header-btn:hover { color: #fff; transform: scale(1.1); }
+    .app-title {
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: 1.5px;
+      background: linear-gradient(90deg, #ff6fcf, #6f8eff, #6fffb0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 30px rgba(100, 150, 255, 0.3);
+      animation: titleGlow 3s ease-in-out infinite alternate;
+      font-family: 'Inter', sans-serif;
+    }
+    @keyframes titleGlow {
+      0% { filter: drop-shadow(0 0 5px rgba(255,100,200,0.5)); }
+      100% { filter: drop-shadow(0 0 20px rgba(100,200,255,0.9)); }
+    }
 
-    /* video wrapper */
+    /* video wrapper - full width, no margins */
     .video-wrapper {
-      position: relative; width: 100%; border-radius: 28px; overflow: hidden;
-      background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-      aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s;
+      position: relative;
+      flex: 1;
+      width: 100%;
+      background: #000;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0;
+      box-shadow: none;
+      border: none;
     }
-    #videoPlayer { width: 100%; height: 100%; display: block; background: #0a0a0a; cursor: pointer; object-fit: contain; }
+    #videoPlayer {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #0a0a0a;
+      cursor: pointer;
+      object-fit: contain;
+    }
     .audio-indicator {
-      position: absolute; top: 12px; right: 16px; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
-      padding: 6px 14px; border-radius: 40px; color: #ccc; font-size: 12px; font-weight: 500;
-      border: 1px solid rgba(255,255,255,0.1); display: none; align-items: center; gap: 8px;
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      padding: 4px 14px;
+      border-radius: 40px;
+      color: #c0d0ff;
+      font-size: 11px;
+      font-weight: 500;
+      border: 1px solid rgba(255,255,255,0.15);
+      display: none;
+      align-items: center;
+      gap: 6px;
+      z-index: 10;
     }
     .audio-indicator i { color: #6fc3ff; }
 
-    /* control bar */
-    .ctrl-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; margin: 10px 0 6px; }
-    .ctrl-group { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    /* audio anim overlay */
+    .audio-anim-overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      background: rgba(0,0,0,0.15);
+    }
+    .audio-anim-overlay.active { display: flex; }
+    .anim-icon {
+      font-size: 100px;
+      color: #fff;
+      text-shadow: 0 0 40px rgba(100,200,255,0.8), 0 0 80px rgba(255,100,200,0.6);
+      animation: pulseGlow 2s infinite alternate;
+    }
+    @keyframes pulseGlow {
+      0% { transform: scale(0.9); opacity: 0.7; text-shadow: 0 0 20px rgba(100,200,255,0.6); }
+      100% { transform: scale(1.2); opacity: 1; text-shadow: 0 0 60px rgba(255,100,200,0.9), 0 0 100px rgba(100,200,255,0.8); }
+    }
+    .anim-icon.float { animation: floatAnim 3s ease-in-out infinite; }
+    @keyframes floatAnim { 0%,100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-25px) rotate(5deg); } }
+    .anim-icon.spin { animation: spinAnim 4s linear infinite; }
+    @keyframes spinAnim { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .anim-icon.bounce { animation: bounceAnim 1.5s ease-in-out infinite; }
+    @keyframes bounceAnim { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-35px); } }
+    .anim-icon.wobble { animation: wobbleAnim 2s ease-in-out infinite; }
+    @keyframes wobbleAnim { 0%,100% { transform: rotate(-3deg) scale(1); } 50% { transform: rotate(3deg) scale(1.1); } }
+    .anim-icon.pulse { animation: pulseAnim 1.2s ease-in-out infinite; }
+    @keyframes pulseAnim { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+    .anim-icon.shake { animation: shakeAnim 0.8s infinite; }
+    @keyframes shakeAnim { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-15px); } 75% { transform: translateX(15px); } }
+    .anim-icon.flip { animation: flipAnim 3s ease-in-out infinite; }
+    @keyframes flipAnim { 0% { transform: perspective(400px) rotateY(0); } 50% { transform: perspective(400px) rotateY(180deg); } 100% { transform: perspective(400px) rotateY(360deg); } }
+
+    /* control bar - thin and at bottom */
+    .ctrl-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 6px 10px;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid rgba(255,255,255,0.05);
+      flex-shrink: 0;
+      z-index: 20;
+    }
+    .ctrl-group { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
     .ctrl-btn {
-      background: #26262e; border: none; color: #eaeef2; width: 38px; height: 38px;
-      border-radius: 40px; font-size: 17px; display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: 0.15s; border: 1px solid #3b3b47; box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+      background: rgba(40, 40, 60, 0.6);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #d0d8ff;
+      width: 34px;
+      height: 34px;
+      border-radius: 40px;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.2s;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 0 15px rgba(80, 60, 255, 0.1);
     }
-    .ctrl-btn:hover { background: #3a3a48; transform: scale(0.96); }
-    .play-btn { width: 48px; background: #3f3f52; border-color: #5a5a70; }
-    .fullscreen-btn { background: #2a2a3a; border-color: #4f4f64; }
+    .ctrl-btn:hover { background: rgba(80, 80, 140, 0.6); transform: scale(0.95); border-color: rgba(255,255,255,0.3); }
+    .play-btn {
+      width: 44px;
+      background: linear-gradient(135deg, #6f8eff, #b06fff);
+      border: none;
+      box-shadow: 0 0 25px rgba(100, 80, 255, 0.4);
+    }
+    .play-btn i { filter: drop-shadow(0 0 8px rgba(255,255,255,0.5)); }
+    .mini-toggle {
+      background: rgba(40, 40, 60, 0.6);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #c0c8ff;
+      padding: 4px 12px;
+      border-radius: 40px;
+      font-size: 11px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+    }
+    .mini-toggle.active { background: rgba(60, 80, 180, 0.5); border-color: #6f8eff; }
 
-    /* mini player toggle */
-    .mini-toggle { background: #252533; border: 1px solid #4a4a5e; color: #cbd0e0; padding: 6px 16px; border-radius: 40px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
-    .mini-toggle.active { background: #2f3f6a; border-color: #6a8aff; color: white; }
+    /* mini mode - keep video larger */
+    .mini-mode .video-wrapper { max-height: 200px; }
+    .mini-mode .ctrl-btn { width: 28px; height: 28px; font-size: 12px; }
+    .mini-mode .play-btn { width: 36px; }
+    .mini-mode .anim-selector-panel { display: none; }
 
-    /* DJ / EQ */
-    .dj-section {
-      background: #1d1d24; border-radius: 34px; padding: 12px 14px; margin: 8px 0 10px;
-      border: 1px solid #31313c; display: flex; flex-direction: column; gap: 12px;
+    /* Fullscreen override: hide everything except video */
+    .app-container:-webkit-full-screen .header-row,
+    .app-container:-webkit-full-screen .ctrl-bar,
+    .app-container:-webkit-full-screen .audio-indicator,
+    .app-container:-moz-full-screen .header-row,
+    .app-container:-moz-full-screen .ctrl-bar,
+    .app-container:-moz-full-screen .audio-indicator,
+    .app-container:fullscreen .header-row,
+    .app-container:fullscreen .ctrl-bar,
+    .app-container:fullscreen .audio-indicator {
+      display: none !important;
     }
-    .eq-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-    .eq-label { color: #b8bcc9; font-size: 12px; font-weight: 500; min-width: 60px; display: flex; align-items: center; gap: 5px; }
-    .eq-slider { flex: 1; min-width: 80px; accent-color: #6f8eff; height: 4px; background: #353541; border-radius: 10px; appearance: none; outline: none; }
-    .eq-slider::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; border-radius: 20px; background: #8aa3ff; border: 1px solid #c0d0ff; cursor: pointer; }
-    .eq-value { color: #d0d6e6; font-size: 12px; min-width: 28px; text-align: right; }
-    .speed-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border-top: 1px solid #2e2e3b; padding-top: 10px; }
-    .speed-btn-group { display: flex; gap: 5px; flex-wrap: wrap; }
-    .speed-btn {
-      background: #2d2d3a; border: 1px solid #434355; color: #d4d9ec; padding: 4px 10px;
-      border-radius: 40px; font-size: 11px; font-weight: 600; cursor: pointer;
+    .app-container:-webkit-full-screen .video-wrapper,
+    .app-container:-moz-full-screen .video-wrapper,
+    .app-container:fullscreen .video-wrapper {
+      flex: 1;
+      border-radius: 0;
+      background: #000;
     }
-    .speed-btn.active { background: #4a5b8a; border-color: #7a95df; color: white; }
+    .app-container:-webkit-full-screen,
+    .app-container:-moz-full-screen,
+    .app-container:fullscreen {
+      padding: 0;
+      background: #000;
+      border: none;
+    }
+    .app-container:-webkit-full-screen::before,
+    .app-container:-moz-full-screen::before,
+    .app-container:fullscreen::before {
+      display: none;
+    }
 
-    /* voice & theme */
-    .voice-theme-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; justify-content: space-between; }
-    .voice-select, .theme-select {
-      background: #22222b; border: 1px solid #3d3d4c; color: #eceff8;
-      padding: 6px 12px; border-radius: 40px; font-size: 12px; font-weight: 500; outline: none;
-      flex: 1; min-width: 100px;
+    /* Drawers - neon vibrant */
+    .drawer-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7); z-index: 1000; display: none;
+      backdrop-filter: blur(4px);
     }
-
-    /* Quality selector */
-    .quality-row {
-      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-      background: #18181f; border-radius: 40px; padding: 6px 12px; margin-top: 4px;
-      border: 1px solid #33333f;
+    .drawer-overlay.open { display: block; }
+    .drawer {
+      position: fixed; top: 0; width: 300px; max-width: 85%; height: 100%;
+      background: rgba(10, 10, 25, 0.92);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.1);
+      z-index: 1001;
+      padding: 18px 16px;
+      overflow-y: auto;
+      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+      box-shadow: 0 0 60px rgba(0,0,0,0.8);
+      font-family: 'Inter', sans-serif;
     }
-    .quality-label { color: #b0b6cc; font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 5px; }
-    .quality-btn-group { display: flex; gap: 4px; flex-wrap: wrap; }
-    .quality-btn {
-      background: #2a2a38; border: 1px solid #434355; color: #bcc1d6; padding: 3px 8px;
-      border-radius: 30px; font-size: 10px; font-weight: 600; cursor: pointer;
-      transition: 0.1s;
-    }
-    .quality-btn.active { background: #3a5a8a; border-color: #6a8aff; color: white; }
-    .quality-btn:hover { background: #3a3f5a; }
-
-    /* media library (folder / list) */
-    .library-section {
-      margin: 14px 0 6px; background: #1a1a22; border-radius: 28px; padding: 12px 14px;
-      border: 1px solid #33333f; max-height: 160px; overflow-y: auto;
-    }
-    .library-header { display: flex; justify-content: space-between; color: #9fa6c0; font-size: 12px; font-weight: 600; margin-bottom: 6px; letter-spacing: 0.3px; }
-    .lib-item {
+    .drawer-left { left: 0; transform: translateX(-105%); border-right: 2px solid rgba(255, 100, 200, 0.3); box-shadow: 0 0 40px rgba(255, 0, 200, 0.2); }
+    .drawer-right { right: 0; transform: translateX(105%); border-left: 2px solid rgba(100, 200, 255, 0.3); box-shadow: 0 0 40px rgba(0, 200, 255, 0.2); }
+    .drawer.open { transform: translateX(0); }
+    .drawer-header {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 6px 8px; border-radius: 30px; background: #252530; margin-bottom: 4px;
-      border-left: 3px solid #4a5b8a; color: #d4daf0; font-size: 13px; cursor: pointer;
-      transition: 0.1s;
+      color: #f0f4ff; font-size: 17px; font-weight: 700; margin-bottom: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;
+      text-shadow: 0 0 20px rgba(100, 150, 255, 0.5);
     }
-    .lib-item:hover { background: #32324a; }
-    .lib-item i { color: #7f9cff; margin-right: 8px; }
-    .lib-folder { border-left-color: #b8a64a; background: #2a2a1f; }
+    .drawer-close { background: transparent; border: none; color: #b0b6cc; font-size: 22px; cursor: pointer; }
+    .drawer-section { margin-bottom: 18px; }
+    .drawer-section-title {
+      color: #9fa6c0; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+      margin-bottom: 8px; text-transform: uppercase;
+      background: linear-gradient(90deg, #ff6fcf, #6f8eff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .drawer-item { margin-bottom: 10px; }
+    .drawer-item label { color: #d0d6e6; font-size: 12px; display: block; margin-bottom: 3px; font-weight: 400; }
+    .drawer-item select, .drawer-item input[type="range"] { width: 100%; }
+    .drawer-item select {
+      background: rgba(30,30,50,0.8); border: 1px solid rgba(255,255,255,0.1); color: #eceff8;
+      padding: 6px 12px; border-radius: 40px; font-size: 12px; outline: none;
+      font-family: 'Inter', sans-serif;
+    }
+    .eq-slider {
+      accent-color: #6f8eff; height: 3px; background: #353541; border-radius: 10px;
+      appearance: none; outline: none; width: 100%;
+    }
+    .eq-slider::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; border-radius: 20px; background: #8aa3ff; border: 1px solid #c0d0ff; cursor: pointer; }
+    .eq-value-row { display: flex; justify-content: space-between; color: #b0b6cc; font-size: 11px; }
 
-    /* footer */
-    .footer { margin-top: 14px; display: flex; justify-content: space-between; align-items: center; color: #70707e; font-size: 9px; border-top: 1px solid #25252e; padding-top: 12px; }
-    .dev-info { display: flex; align-items: center; gap: 10px; }
-    .dev-info img { width: 24px; height: 24px; border-radius: 40px; background: #3a3a4a; border: 1px solid #4d4d62; }
-    .dev-text strong { color: #b5b9cf; }
-    .small-mobile { font-size: 8px; color: #5d5d72; }
-    .app-name-foot { font-weight: 700; color: #bcc0d6; font-size: 11px; background: #21212b; padding: 2px 14px; border-radius: 40px; border: 1px solid #3b3b4b; }
+    /* quality buttons - neon glow */
+    .quality-btn-group { display: flex; flex-wrap: wrap; gap: 3px; }
+    .quality-btn {
+      background: rgba(30,30,50,0.6); border: 1px solid rgba(255,255,255,0.08); color: #bcc1d6;
+      padding: 3px 8px; border-radius: 30px; font-size: 10px; font-weight: 600; cursor: pointer;
+      transition: 0.2s;
+    }
+    .quality-btn.active { background: rgba(100, 80, 255, 0.4); border-color: #6f8eff; color: white; box-shadow: 0 0 20px rgba(100, 80, 255, 0.3); }
+    .quality-btn:hover { background: rgba(80,80,160,0.3); }
 
-    /* mini mode */
-    .mini-mode .video-wrapper { aspect-ratio: 4/3; max-height: 140px; }
-    .mini-mode .dj-section, .mini-mode .voice-theme-row, .mini-mode .library-section, .mini-mode .quality-row { display: none; }
-    .mini-mode .ctrl-bar { gap: 2px; }
-    .mini-mode .ctrl-btn { width: 30px; height: 30px; font-size: 13px; }
-    .mini-mode .play-btn { width: 40px; }
+    /* emoji selector */
+    .anim-selector-panel {
+      margin-top: 6px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 20px;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .anim-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+      padding: 2px;
+    }
+    .anim-grid .anim-btn {
+      background: rgba(40,40,60,0.5);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      font-size: 24px;
+      padding: 6px 0;
+      cursor: pointer;
+      transition: 0.15s;
+      text-align: center;
+      color: #d0d8ff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    .anim-grid .anim-btn:hover { background: rgba(80,80,160,0.4); transform: scale(1.05); border-color: rgba(255,255,255,0.2); }
+    .anim-grid .anim-btn.active {
+      background: rgba(100, 80, 255, 0.4);
+      border-color: #6f8eff;
+      box-shadow: 0 0 20px rgba(100, 80, 255, 0.5);
+    }
+    .anim-style-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 8px;
+      justify-content: center;
+    }
+    .anim-style-btn {
+      background: rgba(40,40,60,0.5);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: #c0c8ff;
+      padding: 3px 10px;
+      border-radius: 30px;
+      font-size: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .anim-style-btn.active { background: rgba(100, 80, 255, 0.4); border-color: #6f8eff; color: white; box-shadow: 0 0 15px rgba(100, 80, 255, 0.3); }
+    .anim-style-btn:hover { background: rgba(80,80,160,0.3); }
 
-    /* fullscreen (native) */
-    .app-container:-webkit-full-screen { max-width: 100%; border-radius: 0; padding: 20px; }
-    .app-container:-moz-full-screen { max-width: 100%; border-radius: 0; padding: 20px; }
-    .app-container:fullscreen { max-width: 100%; border-radius: 0; padding: 20px; }
+    /* lib items - neon touches */
+    .lib-list { max-height: 160px; overflow-y: auto; }
+    .lib-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 10px; background: rgba(40,40,60,0.4); border-radius: 30px; margin-bottom: 3px;
+      color: #d4daf0; font-size: 12px; cursor: pointer; border-left: 3px solid #6f8eff;
+      transition: 0.15s;
+    }
+    .lib-item:hover { background: rgba(60,60,100,0.6); border-left-color: #ff6fcf; }
+    .lib-item i { color: #7f9cff; }
+    .lib-folder { border-left-color: #ffcc00; background: rgba(50,50,30,0.4); }
 
-    @media (max-width: 480px) { .ctrl-btn { width: 34px; height: 34px; font-size: 15px; } .play-btn { width: 44px; } }
+    .action-btn {
+      background: rgba(40,40,60,0.5);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: #d4d9ec;
+      padding: 6px 12px;
+      border-radius: 40px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+      transition: 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 4px;
+      font-family: 'Inter', sans-serif;
+    }
+    .action-btn:hover { background: rgba(80,80,160,0.4); border-color: rgba(255,255,255,0.2); }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: #6f8eff; border-radius: 10px; }
+
+    /* responsive */
+    @media (max-width: 480px) {
+      .header-row { height: 34px; padding: 2px 8px; }
+      .app-title { font-size: 14px; }
+      .ctrl-btn { width: 30px; height: 30px; font-size: 13px; }
+      .play-btn { width: 38px; }
+      .anim-grid { grid-template-columns: repeat(5, 1fr); }
+    }
   </style>
 </head>
 <body>
-<div class="app-container" id="appContainer">
-  <!-- header -->
-  <div class="header-row">
-    <span class="app-title"><i class="fas fa-play-circle"></i> iVIDEO</span>
-    <button class="close-btn" id="closeAppBtn"><i class="fas fa-times"></i></button>
-  </div>
+  <!-- Overlay -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
 
-  <!-- video -->
-  <div class="video-wrapper" id="videoWrapper">
-    <video id="videoPlayer" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" crossorigin="anonymous"></video>
-    <div class="audio-indicator" id="audioIndicator"><i class="fas fa-headphones"></i> Audio only</div>
-  </div>
-
-  <!-- controls -->
-  <div class="ctrl-bar">
-    <div class="ctrl-group">
-      <button class="ctrl-btn play-btn" id="playPauseBtn"><i class="fas fa-play"></i></button>
-      <button class="ctrl-btn" id="stopBtn"><i class="fas fa-stop"></i></button>
-      <button class="ctrl-btn" id="muteBtn"><i class="fas fa-volume-up"></i></button>
+  <!-- Left Drawer (settings) -->
+  <div class="drawer drawer-left" id="drawerLeft">
+    <div class="drawer-header">
+      <span><i class="fas fa-sliders-h"></i> Settings</span>
+      <button class="drawer-close" id="closeLeftDrawer"><i class="fas fa-times"></i></button>
     </div>
-    <div class="ctrl-group">
-      <button class="ctrl-btn fullscreen-btn" id="fullscreenBtn"><i class="fas fa-expand"></i></button>
-      <button class="ctrl-btn" id="audioModeToggle"><i class="fas fa-music"></i></button>
-      <button class="ctrl-btn" id="backToVideoBtn" style="background:#2e2e40;"><i class="fas fa-video"></i></button>
-      <button class="mini-toggle" id="miniToggle"><i class="fas fa-window-minimize"></i> Mini</button>
+    <div class="drawer-section">
+      <div class="drawer-section-title">Video Quality</div>
+      <div class="drawer-item">
+        <div class="quality-btn-group" id="qualityGroupDrawer">
+          <button class="quality-btn" data-quality="144">144</button>
+          <button class="quality-btn" data-quality="240">240</button>
+          <button class="quality-btn" data-quality="360">360</button>
+          <button class="quality-btn active" data-quality="720">720</button>
+          <button class="quality-btn" data-quality="1080">1080</button>
+          <button class="quality-btn" data-quality="2160">4K</button>
+          <button class="quality-btn" data-quality="4320">8K</button>
+        </div>
+      </div>
     </div>
-  </div>
-
-  <!-- DJ -->
-  <div class="dj-section" id="djSection">
-    <div class="eq-row"><span class="eq-label"><i class="fas fa-wave-square"></i> Bass</span><input type="range" class="eq-slider" id="bassSlider" min="0" max="200" value="100"><span class="eq-value" id="bassVal">100</span></div>
-    <div class="eq-row"><span class="eq-label"><i class="fas fa-sliders-h"></i> Mid</span><input type="range" class="eq-slider" id="midSlider" min="0" max="200" value="100"><span class="eq-value" id="midVal">100</span></div>
-    <div class="eq-row"><span class="eq-label"><i class="fas fa-highlighter"></i> Treble</span><input type="range" class="eq-slider" id="trebleSlider" min="0" max="200" value="100"><span class="eq-value" id="trebleVal">100</span></div>
-    <div class="speed-row">
-      <span class="eq-label"><i class="fas fa-tachometer-alt"></i> Speed</span>
-      <div class="speed-btn-group">
-        <button class="speed-btn" data-speed="0.25">0.25</button><button class="speed-btn" data-speed="0.5">0.5</button>
-        <button class="speed-btn active" data-speed="1.0">1.0</button>
-        <button class="speed-btn" data-speed="1.5">1.5</button><button class="speed-btn" data-speed="2.0">2.0</button>
-        <button class="speed-btn" data-speed="3.0">3.0</button>
+    <div class="drawer-section">
+      <div class="drawer-section-title">Theme</div>
+      <div class="drawer-item">
+        <select id="themeSelectDrawer">
+          <option value="dark">🌙 Dark</option><option value="red">🔴 Red</option><option value="blue">🔵 Blue</option>
+          <option value="yellow">🟡 Yellow</option><option value="green">🟢 Green</option><option value="pink">🌸 Pink</option>
+          <option value="purple">🟣 Purple</option>
+        </select>
+      </div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">Voice Effect</div>
+      <div class="drawer-item">
+        <select id="voiceSelectDrawer">
+          <option value="none">🎤 Original</option><option value="robot">🤖 Robot</option><option value="child">🧒 Child</option>
+          <option value="old">👴 Old</option><option value="girl">👧 Girl</option><option value="boy">👦 Boy</option>
+          <option value="underwater">🌊 Underwater</option><option value="man">👨 Man</option><option value="women">👩 Women</option>
+          <option value="mobile">📱 Mobile</option>
+        </select>
+      </div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">Equalizer</div>
+      <div class="drawer-item">
+        <label>Bass</label>
+        <input type="range" class="eq-slider" id="bassSliderDrawer" min="0" max="200" value="100">
+        <div class="eq-value-row"><span>0</span><span id="bassValDrawer">100</span><span>200</span></div>
+      </div>
+      <div class="drawer-item">
+        <label>Mid</label>
+        <input type="range" class="eq-slider" id="midSliderDrawer" min="0" max="200" value="100">
+        <div class="eq-value-row"><span>0</span><span id="midValDrawer">100</span><span>200</span></div>
+      </div>
+      <div class="drawer-item">
+        <label>Treble</label>
+        <input type="range" class="eq-slider" id="trebleSliderDrawer" min="0" max="200" value="100">
+        <div class="eq-value-row"><span>0</span><span id="trebleValDrawer">100</span><span>200</span></div>
       </div>
     </div>
   </div>
 
-  <!-- voice & theme -->
-  <div class="voice-theme-row">
-    <select class="voice-select" id="voiceSelect">
-      <option value="none">🎤 Original</option><option value="robot">🤖 Robot</option><option value="child">🧒 Child</option>
-      <option value="old">👴 Old</option><option value="girl">👧 Girl</option><option value="boy">👦 Boy</option>
-      <option value="underwater">🌊 Underwater</option><option value="man">👨 Man</option><option value="women">👩 Women</option>
-      <option value="mobile">📱 Mobile</option>
-    </select>
-    <select class="theme-select" id="themeSelect">
-      <option value="dark">🌙 Dark</option><option value="red">🔴 Red</option><option value="blue">🔵 Blue</option>
-      <option value="yellow">🟡 Yellow</option><option value="green">🟢 Green</option><option value="pink">🌸 Pink</option>
-      <option value="purple">🟣 Purple</option>
-    </select>
-  </div>
-
-  <!-- QUALITY selector (new) -->
-  <div class="quality-row">
-    <span class="quality-label"><i class="fas fa-sliders-h"></i> Quality</span>
-    <div class="quality-btn-group" id="qualityGroup">
-      <button class="quality-btn" data-quality="144">144p</button>
-      <button class="quality-btn" data-quality="240">240p</button>
-      <button class="quality-btn" data-quality="360">360p</button>
-      <button class="quality-btn active" data-quality="720">720p</button>
-      <button class="quality-btn" data-quality="1080">1080p</button>
-      <button class="quality-btn" data-quality="2160">4K</button>
-      <button class="quality-btn" data-quality="4320">8K</button>
+  <!-- Right Drawer (media & animations) -->
+  <div class="drawer drawer-right" id="drawerRight">
+    <div class="drawer-header">
+      <span><i class="fas fa-ellipsis-v"></i> More</span>
+      <button class="drawer-close" id="closeRightDrawer"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">Media Library</div>
+      <div class="lib-list" id="libraryListDrawer"></div>
+      <button class="action-btn" id="importVideoBtn"><i class="fas fa-file-import"></i> Import Video</button>
+      <button class="action-btn" style="margin-top:4px;" id="importAudioBtn"><i class="fas fa-file-audio"></i> Import Audio</button>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">🎨 Audio Visuals (30+ emojis)</div>
+      <div class="anim-selector-panel">
+        <div class="anim-grid" id="animGrid">
+          <!-- Emojis injected via JS -->
+        </div>
+        <div class="anim-style-selector" id="animStyleSelector">
+          <button class="anim-style-btn active" data-style="pulse">Pulse</button>
+          <button class="anim-style-btn" data-style="float">Float</button>
+          <button class="anim-style-btn" data-style="bounce">Bounce</button>
+          <button class="anim-style-btn" data-style="spin">Spin</button>
+          <button class="anim-style-btn" data-style="wobble">Wobble</button>
+          <button class="anim-style-btn" data-style="shake">Shake</button>
+          <button class="anim-style-btn" data-style="flip">Flip</button>
+        </div>
+        <button class="action-btn" id="randomAnimBtn" style="margin-top:8px;"><i class="fas fa-random"></i> Random Emoji</button>
+      </div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">Support</div>
+      <button class="action-btn" id="whatsappBtn"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+      <button class="action-btn" style="margin-top:4px;" id="feedbackBtn"><i class="fas fa-envelope"></i> Feedback</button>
     </div>
   </div>
 
-  <!-- library (localStorage folder/list) -->
-  <div class="library-section" id="librarySection">
-    <div class="library-header"><span><i class="fas fa-folder-open"></i> Media library</span><span id="libCount">0 items</span></div>
-    <div id="libraryList"></div>
+  <!-- Main App -->
+  <div class="app-container" id="appContainer">
+    <!-- Header - super thin -->
+    <div class="header-row">
+      <button class="header-btn" id="openLeftDrawer"><i class="fas fa-bars"></i></button>
+      <span class="app-title"><i class="fas fa-play-circle"></i> iVIDEO</span>
+      <button class="header-btn" id="openRightDrawer"><i class="fas fa-ellipsis-v"></i></button>
+    </div>
+
+    <!-- Video - full remaining space -->
+    <div class="video-wrapper" id="videoWrapper">
+      <video id="videoPlayer" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" crossorigin="anonymous"></video>
+      <div class="audio-indicator" id="audioIndicator"><i class="fas fa-headphones"></i> Audio</div>
+      <div class="audio-anim-overlay" id="audioAnimOverlay">
+        <div class="anim-icon" id="animIcon">🎵</div>
+      </div>
+    </div>
+
+    <!-- Controls - at bottom -->
+    <div class="ctrl-bar">
+      <div class="ctrl-group">
+        <button class="ctrl-btn play-btn" id="playPauseBtn"><i class="fas fa-play"></i></button>
+        <button class="ctrl-btn" id="stopBtn"><i class="fas fa-stop"></i></button>
+        <button class="ctrl-btn" id="muteBtn"><i class="fas fa-volume-up"></i></button>
+      </div>
+      <div class="ctrl-group">
+        <button class="ctrl-btn fullscreen-btn" id="fullscreenBtn"><i class="fas fa-expand"></i></button>
+        <button class="ctrl-btn" id="audioModeToggle"><i class="fas fa-music"></i></button>
+        <button class="ctrl-btn" id="backToVideoBtn" style="background:rgba(40,40,60,0.6);"><i class="fas fa-video"></i></button>
+        <button class="mini-toggle" id="miniToggle"><i class="fas fa-window-minimize"></i> Mini</button>
+      </div>
+    </div>
   </div>
 
-  <!-- footer -->
-  <div class="footer">
-    <div class="dev-info"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Ccircle cx='15' cy='15' r='13' fill='%23333b55'/%3E%3Ctext x='8' y='22' font-family='Arial' font-size='14' fill='%23b0c0ff'%3ED%3C/text%3E%3C/svg%3E" alt="dev"><span class="dev-text"><strong>Divy</strong> <span class="small-mobile">+91 9369224174</span></span></div>
-    <span class="app-name-foot"><i class="fas fa-play-circle"></i> iVIDEO</span>
-  </div>
-</div>
+  <script>
+    (function() {
+      // ---- DOM refs ----
+      const video = document.getElementById('videoPlayer');
+      const playBtn = document.getElementById('playPauseBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      const muteBtn = document.getElementById('muteBtn');
+      const fullscreenBtn = document.getElementById('fullscreenBtn');
+      const audioToggle = document.getElementById('audioModeToggle');
+      const backToVideo = document.getElementById('backToVideoBtn');
+      const audioIndicator = document.getElementById('audioIndicator');
+      const miniToggle = document.getElementById('miniToggle');
+      const appContainer = document.getElementById('appContainer');
 
-<script>
-  (function() {
-    // DOM refs
-    const video = document.getElementById('videoPlayer');
-    const playBtn = document.getElementById('playPauseBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const muteBtn = document.getElementById('muteBtn');
-    const fullscreenBtn = document.getElementById('fullscreenBtn');
-    const closeBtn = document.getElementById('closeAppBtn');
-    const audioToggle = document.getElementById('audioModeToggle');
-    const backToVideo = document.getElementById('backToVideoBtn');
-    const audioIndicator = document.getElementById('audioIndicator');
-    const miniToggle = document.getElementById('miniToggle');
-    const appContainer = document.getElementById('appContainer');
-    const themeSelect = document.getElementById('themeSelect');
-    const voiceSelect = document.getElementById('voiceSelect');
-    const bassSlider = document.getElementById('bassSlider');
-    const midSlider = document.getElementById('midSlider');
-    const trebleSlider = document.getElementById('trebleSlider');
-    const bassVal = document.getElementById('bassVal');
-    const midVal = document.getElementById('midVal');
-    const trebleVal = document.getElementById('trebleVal');
-    const speedBtns = document.querySelectorAll('.speed-btn');
-    const qualityBtns = document.querySelectorAll('.quality-btn');
-    const libraryList = document.getElementById('libraryList');
-    const libCount = document.getElementById('libCount');
+      // Drawers
+      const overlay = document.getElementById('drawerOverlay');
+      const leftDrawer = document.getElementById('drawerLeft');
+      const rightDrawer = document.getElementById('drawerRight');
+      const openLeft = document.getElementById('openLeftDrawer');
+      const openRight = document.getElementById('openRightDrawer');
+      const closeLeft = document.getElementById('closeLeftDrawer');
+      const closeRight = document.getElementById('closeRightDrawer');
 
-    // state
-    let isAudioMode = false;
-    let isMini = false;
-    let audioCtx = null, sourceNode = null, gainNode = null;
-    let filterBass = null, filterMid = null, filterTreble = null;
-    let isAudioCtxReady = false;
+      // Drawer elements
+      const themeSelectDrawer = document.getElementById('themeSelectDrawer');
+      const voiceSelectDrawer = document.getElementById('voiceSelectDrawer');
+      const bassSliderDrawer = document.getElementById('bassSliderDrawer');
+      const midSliderDrawer = document.getElementById('midSliderDrawer');
+      const trebleSliderDrawer = document.getElementById('trebleSliderDrawer');
+      const bassValDrawer = document.getElementById('bassValDrawer');
+      const midValDrawer = document.getElementById('midValDrawer');
+      const trebleValDrawer = document.getElementById('trebleValDrawer');
+      const qualityBtnsDrawer = document.querySelectorAll('#qualityGroupDrawer .quality-btn');
+      const libraryListDrawer = document.getElementById('libraryListDrawer');
+      const animGrid = document.getElementById('animGrid');
+      const animStyleSelector = document.getElementById('animStyleSelector');
+      const randomAnimBtn = document.getElementById('randomAnimBtn');
 
-    // ---- local storage library ----
-    const STORAGE_KEY = 'ividoe_library';
-    let mediaItems = [];
+      // Other
+      const importVideoBtn = document.getElementById('importVideoBtn');
+      const importAudioBtn = document.getElementById('importAudioBtn');
+      const whatsappBtn = document.getElementById('whatsappBtn');
+      const feedbackBtn = document.getElementById('feedbackBtn');
 
-    function loadLibrary() {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) mediaItems = JSON.parse(stored);
-        else {
-          mediaItems = [
-            { name: 'Big Buck Bunny', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', folder: 'Samples' },
-            { name: 'Elephant Dream', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', folder: 'Samples' },
-            { name: 'For Bigger Blazes', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', folder: 'Action' },
-          ];
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(mediaItems));
+      // ---- State ----
+      let isAudioMode = false;
+      let isMini = false;
+      let audioCtx = null, sourceNode = null, gainNode = null;
+      let filterBass = null, filterMid = null, filterTreble = null;
+      let isAudioCtxReady = false;
+      let currentAnimEmoji = '🎵';
+      let currentAnimStyle = 'pulse';
+
+      // ---- Library (localStorage) ----
+      const STORAGE_KEY = 'ividoe_library';
+      let mediaItems = [];
+
+      function loadLibrary() {
+        try {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) mediaItems = JSON.parse(stored);
+          else {
+            mediaItems = [
+              { name: 'Big Buck Bunny', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', folder: 'Samples' },
+              { name: 'Elephant Dream', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', folder: 'Samples' },
+              { name: 'For Bigger Blazes', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', folder: 'Action' },
+            ];
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(mediaItems));
+          }
+        } catch(e) { mediaItems = []; }
+        renderLibrary();
+      }
+
+      function renderLibrary() {
+        libraryListDrawer.innerHTML = '';
+        if (!mediaItems.length) {
+          libraryListDrawer.innerHTML = '<div class="lib-item" style="border-left-color:#666;color:#888;">No media</div>';
+          return;
         }
-      } catch(e) { mediaItems = []; }
-      renderLibrary();
-    }
-
-    function renderLibrary() {
-      libraryList.innerHTML = '';
-      if (!mediaItems.length) { libraryList.innerHTML = '<div class="lib-item" style="border-left-color:#666;color:#888;">No media, add via console: addMedia()</div>'; libCount.textContent = '0 items'; return; }
-      libCount.textContent = mediaItems.length + ' items';
-      const folders = {};
-      mediaItems.forEach(item => {
-        const f = item.folder || 'General';
-        if (!folders[f]) folders[f] = [];
-        folders[f].push(item);
-      });
-      for (let [folder, items] of Object.entries(folders)) {
-        const folderDiv = document.createElement('div');
-        folderDiv.className = 'lib-item lib-folder';
-        folderDiv.innerHTML = `<i class="fas fa-folder"></i> ${folder} (${items.length})`;
-        libraryList.appendChild(folderDiv);
-        items.forEach(item => {
-          const div = document.createElement('div');
-          div.className = 'lib-item';
-          div.innerHTML = `<i class="fas fa-play-circle"></i> ${item.name}`;
-          div.addEventListener('click', () => { video.src = item.url; video.play(); });
-          libraryList.appendChild(div);
+        const folders = {};
+        mediaItems.forEach(item => {
+          const f = item.folder || 'General';
+          if (!folders[f]) folders[f] = [];
+          folders[f].push(item);
         });
+        for (let [folder, items] of Object.entries(folders)) {
+          const folderDiv = document.createElement('div');
+          folderDiv.className = 'lib-item lib-folder';
+          folderDiv.innerHTML = `<i class="fas fa-folder"></i> ${folder} (${items.length})`;
+          libraryListDrawer.appendChild(folderDiv);
+          items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'lib-item';
+            div.innerHTML = `<i class="fas fa-play-circle"></i> ${item.name}`;
+            div.addEventListener('click', () => { video.src = item.url; video.play(); closeDrawers(); });
+            libraryListDrawer.appendChild(div);
+          });
+        }
       }
-    }
 
-    window.addMedia = function(name, url, folder = 'General') {
-      mediaItems.push({ name, url, folder });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(mediaItems));
-      renderLibrary();
-    };
+      window.addMedia = function(name, url, folder = 'General') {
+        mediaItems.push({ name, url, folder });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(mediaItems));
+        renderLibrary();
+      };
 
-    // ---- video controls ----
-    function updatePlayIcon() { playBtn.innerHTML = video.paused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>'; }
-    function togglePlay() { if (video.paused) video.play(); else video.pause(); }
-    video.addEventListener('play', updatePlayIcon);
-    video.addEventListener('pause', updatePlayIcon);
-    video.addEventListener('click', (e) => { if (!isAudioMode) togglePlay(); });
-    playBtn.addEventListener('click', togglePlay);
-    stopBtn.addEventListener('click', () => { video.pause(); video.currentTime = 0; updatePlayIcon(); });
-    muteBtn.addEventListener('click', () => { video.muted = !video.muted; muteBtn.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>'; });
-
-    // fullscreen
-    fullscreenBtn.addEventListener('click', () => {
-      if (!document.fullscreenElement) {
-        appContainer.requestFullscreen?.() || appContainer.webkitRequestFullscreen?.();
-      } else {
-        document.exitFullscreen?.() || document.webkitExitFullscreen?.();
+      // ---- Drawer controls ----
+      function openDrawer(drawer) {
+        overlay.classList.add('open');
+        drawer.classList.add('open');
       }
-    });
-
-    // close / exit
-    closeBtn.addEventListener('click', () => {
-      if (confirm('Close iVIDEO?')) {
-        video.pause();
-        if (document.fullscreenElement) document.exitFullscreen?.();
-        appContainer.style.display = 'none';
+      function closeDrawers() {
+        overlay.classList.remove('open');
+        leftDrawer.classList.remove('open');
+        rightDrawer.classList.remove('open');
       }
-    });
+      overlay.addEventListener('click', closeDrawers);
+      openLeft.addEventListener('click', () => { closeDrawers(); setTimeout(() => openDrawer(leftDrawer), 50); });
+      openRight.addEventListener('click', () => { closeDrawers(); setTimeout(() => openDrawer(rightDrawer), 50); });
+      closeLeft.addEventListener('click', closeDrawers);
+      closeRight.addEventListener('click', closeDrawers);
 
-    // audio mode
-    audioToggle.addEventListener('click', () => {
-      isAudioMode = !isAudioMode;
-      audioIndicator.style.display = isAudioMode ? 'flex' : 'none';
-      audioToggle.innerHTML = isAudioMode ? '<i class="fas fa-video"></i>' : '<i class="fas fa-music"></i>';
-      backToVideo.style.display = isAudioMode ? 'inline-flex' : 'inline-flex';
-      if (isAudioMode) { video.muted = false; } 
-    });
-    backToVideo.addEventListener('click', () => {
-      if (isAudioMode) {
-        isAudioMode = false;
-        audioIndicator.style.display = 'none';
-        audioToggle.innerHTML = '<i class="fas fa-music"></i>';
-      }
-    });
+      // ---- Video controls ----
+      function updatePlayIcon() { playBtn.innerHTML = video.paused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>'; }
+      function togglePlay() { if (video.paused) video.play(); else video.pause(); }
+      video.addEventListener('play', updatePlayIcon);
+      video.addEventListener('pause', updatePlayIcon);
+      video.addEventListener('click', (e) => { if (!isAudioMode) togglePlay(); });
+      playBtn.addEventListener('click', togglePlay);
+      stopBtn.addEventListener('click', () => { video.pause(); video.currentTime = 0; updatePlayIcon(); });
+      muteBtn.addEventListener('click', () => { video.muted = !video.muted; muteBtn.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>'; });
 
-    // mini mode
-    miniToggle.addEventListener('click', () => {
-      isMini = !isMini;
-      appContainer.classList.toggle('mini-mode', isMini);
-      miniToggle.innerHTML = isMini ? '<i class="fas fa-window-maximize"></i> Maxi' : '<i class="fas fa-window-minimize"></i> Mini';
-    });
-
-    // theme
-    themeSelect.addEventListener('change', function() {
-      appContainer.className = 'app-container theme-' + this.value;
-    });
-    appContainer.className = 'app-container theme-dark';
-
-    // ---- QUALITY (pixel / resolution) ----
-    qualityBtns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        qualityBtns.forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        const targetRes = parseInt(this.dataset.quality);
-        // we simulate by setting video width/height via CSS? we use object-fit and scale
-        // but we also can adjust video dimensions
-        const videoWrapper = document.getElementById('videoWrapper');
-        // we scale the video element to simulate resolution (or we could change src)
-        // For demonstration, we adjust the video's style width/height but keep aspect ratio
-        // Better: we resize the wrapper's scale? we use transform
-        const baseWidth = 1280; // reference
-        const scale = targetRes / 720; // relative to 720p
-        // we apply scale to video element (preserve aspect ratio)
-        video.style.transform = `scale(${Math.min(scale, 2.0)})`; // cap for visual
-        video.style.transformOrigin = 'center center';
-        // also adjust object-fit to contain
-        video.style.objectFit = 'contain';
-        // show current res
-        console.log(`Quality set to ${targetRes}p`);
-      });
-    });
-    // set default 720p
-    document.querySelector('.quality-btn[data-quality="720"]')?.classList.add('active');
-
-    // ---- voice & EQ ----
-    function applyVoiceEffect(type) {
-      if (!audioCtx) {
-        try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ return; }
-      }
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      if (sourceNode) { try { sourceNode.disconnect(); } catch(e) {} }
-      sourceNode = audioCtx.createMediaElementSource(video);
-      gainNode = audioCtx.createGain();
-      filterBass = audioCtx.createBiquadFilter(); filterBass.type = 'lowshelf'; filterBass.frequency.value = 200;
-      filterMid = audioCtx.createBiquadFilter(); filterMid.type = 'peaking'; filterMid.frequency.value = 1000; filterMid.Q.value = 1;
-      filterTreble = audioCtx.createBiquadFilter(); filterTreble.type = 'highshelf'; filterTreble.frequency.value = 3000;
-
-      filterBass.gain.value = (bassSlider.value - 100) * 0.8;
-      filterMid.gain.value = (midSlider.value - 100) * 0.6;
-      filterTreble.gain.value = (trebleSlider.value - 100) * 0.7;
-
-      sourceNode.connect(filterBass);
-      filterBass.connect(filterMid);
-      filterMid.connect(filterTreble);
-      filterTreble.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-
-      if (type === 'robot') { filterBass.gain.value = -10; filterMid.gain.value = 15; filterTreble.gain.value = 20; }
-      else if (type === 'child') { filterBass.gain.value = -12; filterMid.gain.value = 8; filterTreble.gain.value = 18; }
-      else if (type === 'old') { filterBass.gain.value = 12; filterMid.gain.value = -8; filterTreble.gain.value = -12; }
-      else if (type === 'girl') { filterBass.gain.value = -8; filterMid.gain.value = 5; filterTreble.gain.value = 22; }
-      else if (type === 'boy') { filterBass.gain.value = -4; filterMid.gain.value = 2; filterTreble.gain.value = 10; }
-      else if (type === 'underwater') {
-        filterBass.gain.value = 18; filterMid.gain.value = -10; filterTreble.gain.value = -25;
-        const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 800;
-        filterTreble.disconnect(); filterTreble.connect(lp); lp.connect(gainNode);
-      } else if (type === 'man') { filterBass.gain.value = 8; filterMid.gain.value = -2; filterTreble.gain.value = -6; }
-      else if (type === 'women') { filterBass.gain.value = -6; filterMid.gain.value = 6; filterTreble.gain.value = 14; }
-      else if (type === 'mobile') {
-        filterBass.gain.value = -20; filterMid.gain.value = 20; filterTreble.gain.value = 10;
-        const bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1000; bp.Q.value = 0.8;
-        filterTreble.disconnect(); filterTreble.connect(bp); bp.connect(gainNode);
-      } else { filterBass.gain.value = 0; filterMid.gain.value = 0; filterTreble.gain.value = 0; }
-      updateEQFromSliders();
-      isAudioCtxReady = true;
-    }
-
-    function updateEQFromSliders() {
-      if (!filterBass || !filterMid || !filterTreble) return;
-      filterBass.gain.value = (bassSlider.value - 100) * 0.8;
-      filterMid.gain.value = (midSlider.value - 100) * 0.6;
-      filterTreble.gain.value = (trebleSlider.value - 100) * 0.7;
-      bassVal.textContent = bassSlider.value;
-      midVal.textContent = midSlider.value;
-      trebleVal.textContent = trebleSlider.value;
-    }
-
-    voiceSelect.addEventListener('change', function() {
-      if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ return; } }
-      applyVoiceEffect(this.value);
-    });
-
-    [bassSlider, midSlider, trebleSlider].forEach((slider, idx) => {
-      slider.addEventListener('input', function() {
-        const val = this.value;
-        if (idx === 0) bassVal.textContent = val;
-        else if (idx === 1) midVal.textContent = val;
-        else trebleVal.textContent = val;
-        if (filterBass && filterMid && filterTreble) {
-          updateEQFromSliders();
-          const voice = voiceSelect.value;
-          if (voice !== 'none') applyVoiceEffect(voice);
+      // fullscreen - native API
+      fullscreenBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          appContainer.requestFullscreen?.() || appContainer.webkitRequestFullscreen?.();
+        } else {
+          document.exitFullscreen?.() || document.webkitExitFullscreen?.();
         }
       });
-    });
 
-    // speed
-    speedBtns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        speedBtns.forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        video.playbackRate = parseFloat(this.dataset.speed);
+      // audio mode
+      audioToggle.addEventListener('click', () => {
+        isAudioMode = !isAudioMode;
+        audioIndicator.style.display = isAudioMode ? 'flex' : 'none';
+        audioToggle.innerHTML = isAudioMode ? '<i class="fas fa-video"></i>' : '<i class="fas fa-music"></i>';
+        backToVideo.style.display = isAudioMode ? 'inline-flex' : 'inline-flex';
+        if (isAudioMode) { video.muted = false; }
+        updateAnimOverlay();
       });
-    });
+      backToVideo.addEventListener('click', () => {
+        if (isAudioMode) {
+          isAudioMode = false;
+          audioIndicator.style.display = 'none';
+          audioToggle.innerHTML = '<i class="fas fa-music"></i>';
+          document.getElementById('audioAnimOverlay').classList.remove('active');
+        }
+      });
 
-    // init audio context on play
-    video.addEventListener('play', function() {
-      if (!audioCtx) {
-        try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
-      }
-      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-      if (!isAudioCtxReady && audioCtx) {
-        applyVoiceEffect(voiceSelect.value);
-      }
-    });
+      // mini mode
+      miniToggle.addEventListener('click', () => {
+        isMini = !isMini;
+        appContainer.classList.toggle('mini-mode', isMini);
+        miniToggle.innerHTML = isMini ? '<i class="fas fa-window-maximize"></i> Maxi' : '<i class="fas fa-window-minimize"></i> Mini';
+      });
 
-    // ---- startup ----
-    loadLibrary();
-    video.playbackRate = 1.0;
-    appContainer.className = 'app-container theme-dark';
-    console.log('iVIDEO loaded · localStorage ready');
-    console.log('📁 Use addMedia(name, url, folder) to add items');
-  })();
-</script>
+      // ---- Theme ----
+      function setTheme(theme) {
+        appContainer.className = 'app-container theme-' + theme;
+        themeSelectDrawer.value = theme;
+      }
+      themeSelectDrawer.addEventListener('change', function() { setTheme(this.value); });
+      setTheme('dark');
+
+      // ---- Voice & EQ ----
+      function applyVoiceEffect(type) {
+        if (!audioCtx) {
+          try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ return; }
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        if (sourceNode) { try { sourceNode.disconnect(); } catch(e) {} }
+        sourceNode = audioCtx.createMediaElementSource(video);
+        gainNode = audioCtx.createGain();
+        filterBass = audioCtx.createBiquadFilter(); filterBass.type = 'lowshelf'; filterBass.frequency.value = 200;
+        filterMid = audioCtx.createBiquadFilter(); filterMid.type = 'peaking'; filterMid.frequency.value = 1000; filterMid.Q.value = 1;
+        filterTreble = audioCtx.createBiquadFilter(); filterTreble.type = 'highshelf'; filterTreble.frequency.value = 3000;
+
+        const bassVal = parseFloat(bassSliderDrawer.value);
+        const midVal = parseFloat(midSliderDrawer.value);
+        const trebleVal = parseFloat(trebleSliderDrawer.value);
+        filterBass.gain.value = (bassVal - 100) * 0.8;
+        filterMid.gain.value = (midVal - 100) * 0.6;
+        filterTreble.gain.value = (trebleVal - 100) * 0.7;
+
+        sourceNode.connect(filterBass);
+        filterBass.connect(filterMid);
+        filterMid.connect(filterTreble);
+        filterTreble.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'robot') { filterBass.gain.value = -10; filterMid.gain.value = 15; filterTreble.gain.value = 20; }
+        else if (type === 'child') { filterBass.gain.value = -12; filterMid.gain.value = 8; filterTreble.gain.value = 18; }
+        else if (type === 'old') { filterBass.gain.value = 12; filterMid.gain.value = -8; filterTreble.gain.value = -12; }
+        else if (type === 'girl') { filterBass.gain.value = -8; filterMid.gain.value = 5; filterTreble.gain.value = 22; }
+        else if (type === 'boy') { filterBass.gain.value = -4; filterMid.gain.value = 2; filterTreble.gain.value = 10; }
+        else if (type === 'underwater') {
+          filterBass.gain.value = 18; filterMid.gain.value = -10; filterTreble.gain.value = -25;
+          const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 800;
+          filterTreble.disconnect(); filterTreble.connect(lp); lp.connect(gainNode);
+        } else if (type === 'man') { filterBass.gain.value = 8; filterMid.gain.value = -2; filterTreble.gain.value = -6; }
+        else if (type === 'women') { filterBass.gain.value = -6; filterMid.gain.value = 6; filterTreble.gain.value = 14; }
+        else if (type === 'mobile') {
+          filterBass.gain.value = -20; filterMid.gain.value = 20; filterTreble.gain.value = 10;
+          const bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1000; bp.Q.value = 0.8;
+          filterTreble.disconnect(); filterTreble.connect(bp); bp.connect(gainNode);
+        } else { filterBass.gain.value = 0; filterMid.gain.value = 0; filterTreble.gain.value = 0; }
+        updateEQDisplay();
+        isAudioCtxReady = true;
+      }
+
+      function updateEQDisplay() {
+        bassValDrawer.textContent = bassSliderDrawer.value;
+        midValDrawer.textContent = midSliderDrawer.value;
+        trebleValDrawer.textContent = trebleSliderDrawer.value;
+        if (filterBass && filterMid && filterTreble) {
+          filterBass.gain.value = (bassSliderDrawer.value - 100) * 0.8;
+          filterMid.gain.value = (midSliderDrawer.value - 100) * 0.6;
+          filterTreble.gain.value = (trebleSliderDrawer.value - 100) * 0.7;
+        }
+      }
+
+      voiceSelectDrawer.addEventListener('change', function() {
+        if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ return; } }
+        applyVoiceEffect(this.value);
+      });
+
+      [bassSliderDrawer, midSliderDrawer, trebleSliderDrawer].forEach(slider => {
+        slider.addEventListener('input', function() {
+          updateEQDisplay();
+          if (filterBass && filterMid && filterTreble) {
+            const voice = voiceSelectDrawer.value;
+            if (voice !== 'none') applyVoiceEffect(voice);
+          }
+        });
+      });
+
+      // ---- Quality ----
+      qualityBtnsDrawer.forEach(btn => {
+        btn.addEventListener('click', function() {
+          qualityBtnsDrawer.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          const targetRes = parseInt(this.dataset.quality);
+          const scale = targetRes / 720;
+          video.style.transform = `scale(${Math.min(scale, 2.0)})`;
+          video.style.transformOrigin = 'center center';
+          video.style.objectFit = 'contain';
+        });
+      });
+
+      // ---- Emoji Grid (30+ emojis) ----
+      const emojiList = [
+        '😀','😍','🥳','😎','🤩','😱','🤯','😈','👻','🎃','🤖','👾','🎸','🥁','🎹','🎧','📸','🌈','⭐','🔥','💧','🌊','🎵','🎶','❤️','💜','💙','💚','💛','🧡','🖤','🤍','💯','⚡','🌀','🌙','☀️','🌸','🌺','🍕','🍔','🍟','🍿','🎮','🕹️','📱','💻','⌚','📷','🔊','🔇','🎤','🎼','🎬','📽️','🎞️'
+      ];
+      const displayEmojis = emojiList.slice(0, 36);
+
+      function buildAnimGrid() {
+        animGrid.innerHTML = '';
+        displayEmojis.forEach(emoji => {
+          const btn = document.createElement('button');
+          btn.className = 'anim-btn';
+          if (emoji === currentAnimEmoji) btn.classList.add('active');
+          btn.textContent = emoji;
+          btn.dataset.emoji = emoji;
+          btn.addEventListener('click', function() {
+            document.querySelectorAll('#animGrid .anim-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentAnimEmoji = this.dataset.emoji;
+            updateAnimOverlay();
+          });
+          animGrid.appendChild(btn);
+        });
+        // set active
+        const activeBtn = animGrid.querySelector(`[data-emoji="${currentAnimEmoji}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+      }
+
+      // ---- Animation style ----
+      const styleBtns = animStyleSelector.querySelectorAll('.anim-style-btn');
+      styleBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          styleBtns.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          currentAnimStyle = this.dataset.style;
+          updateAnimOverlay();
+        });
+      });
+
+      // ---- Random emoji ----
+      randomAnimBtn.addEventListener('click', function() {
+        const randomEmoji = displayEmojis[Math.floor(Math.random() * displayEmojis.length)];
+        currentAnimEmoji = randomEmoji;
+        document.querySelectorAll('#animGrid .anim-btn').forEach(b => b.classList.remove('active'));
+        const activeBtn = animGrid.querySelector(`[data-emoji="${randomEmoji}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+        updateAnimOverlay();
+      });
+
+      // ---- Update animation overlay ----
+      function updateAnimOverlay() {
+        const overlay = document.getElementById('audioAnimOverlay');
+        const icon = document.getElementById('animIcon');
+        if (isAudioMode && currentAnimEmoji) {
+          overlay.classList.add('active');
+          icon.textContent = currentAnimEmoji;
+          icon.className = 'anim-icon';
+          if (currentAnimStyle !== 'none') {
+            icon.classList.add(currentAnimStyle);
+          } else {
+            icon.classList.add('pulse');
+          }
+        } else {
+          overlay.classList.remove('active');
+        }
+      }
+
+      // ---- Import buttons ----
+      importVideoBtn.addEventListener('click', () => {
+        const name = prompt('Enter video name:');
+        if (!name) return;
+        const url = prompt('Enter video URL:');
+        if (!url) return;
+        const folder = prompt('Enter folder name (optional):') || 'Imported';
+        addMedia(name, url, folder);
+        renderLibrary();
+      });
+      importAudioBtn.addEventListener('click', () => {
+        const name = prompt('Enter audio name:');
+        if (!name) return;
+        const url = prompt('Enter audio URL (mp3):');
+        if (!url) return;
+        const folder = prompt('Enter folder name (optional):') || 'Audio';
+        addMedia(name, url, folder);
+        renderLibrary();
+      });
+
+      // ---- Support ----
+      whatsappBtn.addEventListener('click', () => {
+        window.open('https://wa.me/919369224174', '_blank');
+      });
+      feedbackBtn.addEventListener('click', () => {
+        window.location.href = 'mailto:umadivy500@gmail.com?subject=iVIDEO%20Feedback';
+      });
+
+      // ---- Init audio context on play ----
+      video.addEventListener('play', function() {
+        if (!audioCtx) {
+          try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        if (!isAudioCtxReady && audioCtx) {
+          applyVoiceEffect(voiceSelectDrawer.value);
+        }
+      });
+
+      // ---- Startup ----
+      loadLibrary();
+      video.playbackRate = 1.0;
+      updateEQDisplay();
+      // default quality 720p
+      document.querySelector('#qualityGroupDrawer .quality-btn[data-quality="720"]')?.classList.add('active');
+      buildAnimGrid();
+      document.querySelector('.anim-style-btn[data-style="pulse"]')?.classList.add('active');
+      currentAnimStyle = 'pulse';
+      currentAnimEmoji = '🎵';
+      updateAnimOverlay();
+
+      console.log('iVIDEO Neon Ultimate · full width · thin header · fullscreen clean');
+    })();
+  </script>
 </body>
 </html>
