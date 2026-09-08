@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>iVIDEO · pro player</title>
+  <!-- Font Awesome 6 (free) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: #0a0a0e; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 10px; }
+    /* main app card */
+    .app-container {
+      max-width: 520px; width: 100%; background: #14141a; border-radius: 36px;
+      padding: 16px 14px 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+      border: 1px solid #2d2d38; transition: all 0.25s;
+      position: relative;
+    }
+    /* theme variants (applied to container) */
+    .app-container.theme-red { background: #1f0f0f; border-color: #b13e3e; }
+    .app-container.theme-blue { background: #0e1724; border-color: #3a6b9b; }
+    .app-container.theme-yellow { background: #1f1a0a; border-color: #b89f3a; }
+    .app-container.theme-green { background: #0d1f12; border-color: #3b8a4a; }
+    .app-container.theme-pink { background: #1f0f1a; border-color: #b3437a; }
+    .app-container.theme-purple { background: #17102b; border-color: #7a4db3; }
+    .app-container.theme-dark { background: #0a0a0c; border-color: #3a3a44; }
+
+    /* header: title + close */
+    .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .app-title { font-weight: 700; color: #eef2ff; font-size: 20px; letter-spacing: 1px; }
+    .app-title i { color: #6f8eff; margin-right: 6px; }
+    .close-btn { background: #2f2f3d; border: none; color: #d0d6ea; width: 38px; height: 38px; border-radius: 40px; font-size: 18px; cursor: pointer; transition: 0.2s; border: 1px solid #4a4a5e; }
+    .close-btn:hover { background: #4f3f4f; color: #ffbaba; transform: scale(0.94); }
+
+    /* video wrapper */
+    .video-wrapper {
+      position: relative; width: 100%; border-radius: 28px; overflow: hidden;
+      background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    #videoPlayer { width: 100%; height: 100%; display: block; background: #0a0a0a; cursor: pointer; object-fit: contain; }
+    .audio-indicator {
+      position: absolute; top: 12px; right: 16px; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+      padding: 6px 14px; border-radius: 40px; color: #ccc; font-size: 12px; font-weight: 500;
+      border: 1px solid rgba(255,255,255,0.1); display: none; align-items: center; gap: 8px;
+    }
+    .audio-indicator i { color: #6fc3ff; }
+
+    /* control bar */
+    .ctrl-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; margin: 10px 0 6px; }
+    .ctrl-group { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .ctrl-btn {
+      background: #26262e; border: none; color: #eaeef2; width: 38px; height: 38px;
+      border-radius: 40px; font-size: 17px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: 0.15s; border: 1px solid #3b3b47; box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    }
+    .ctrl-btn:hover { background: #3a3a48; transform: scale(0.96); }
+    .play-btn { width: 48px; background: #3f3f52; border-color: #5a5a70; }
+    .fullscreen-btn { background: #2a2a3a; border-color: #4f4f64; }
+
+    /* mini player toggle */
+    .mini-toggle { background: #252533; border: 1px solid #4a4a5e; color: #cbd0e0; padding: 6px 16px; border-radius: 40px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+    .mini-toggle.active { background: #2f3f6a; border-color: #6a8aff; color: white; }
+
+    /* DJ / EQ */
+    .dj-section {
+      background: #1d1d24; border-radius: 34px; padding: 12px 14px; margin: 8px 0 10px;
+      border: 1px solid #31313c; display: flex; flex-direction: column; gap: 12px;
+    }
+    .eq-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .eq-label { color: #b8bcc9; font-size: 12px; font-weight: 500; min-width: 60px; display: flex; align-items: center; gap: 5px; }
+    .eq-slider { flex: 1; min-width: 80px; accent-color: #6f8eff; height: 4px; background: #353541; border-radius: 10px; appearance: none; outline: none; }
+    .eq-slider::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; border-radius: 20px; background: #8aa3ff; border: 1px solid #c0d0ff; cursor: pointer; }
+    .eq-value { color: #d0d6e6; font-size: 12px; min-width: 28px; text-align: right; }
+    .speed-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border-top: 1px solid #2e2e3b; padding-top: 10px; }
+    .speed-btn-group { display: flex; gap: 5px; flex-wrap: wrap; }
+    .speed-btn {
+      background: #2d2d3a; border: 1px solid #434355; color: #d4d9ec; padding: 4px 10px;
+      border-radius: 40px; font-size: 11px; font-weight: 600; cursor: pointer;
+    }
+    .speed-btn.active { background: #4a5b8a; border-color: #7a95df; color: white; }
+
+    /* voice & theme */
+    .voice-theme-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; justify-content: space-between; }
+    .voice-select, .theme-select {
+      background: #22222b; border: 1px solid #3d3d4c; color: #eceff8;
+      padding: 6px 12px; border-radius: 40px; font-size: 12px; font-weight: 500; outline: none;
+      flex: 1; min-width: 100px;
+    }
+
+    /* Quality selector */
+    .quality-row {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      background: #18181f; border-radius: 40px; padding: 6px 12px; margin-top: 4px;
+      border: 1px solid #33333f;
+    }
+    .quality-label { color: #b0b6cc; font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 5px; }
+    .quality-btn-group { display: flex; gap: 4px; flex-wrap: wrap; }
+    .quality-btn {
+      background: #2a2a38; border: 1px solid #434355; color: #bcc1d6; padding: 3px 8px;
+      border-radius: 30px; font-size: 10px; font-weight: 600; cursor: pointer;
+      transition: 0.1s;
+    }
+    .quality-btn.active { background: #3a5a8a; border-color: #6a8aff; color: white; }
+    .quality-btn:hover { background: #3a3f5a; }
+
+    /* media library (folder / list) */
+    .library-section {
+      margin: 14px 0 6px; background: #1a1a22; border-radius: 28px; padding: 12px 14px;
+      border: 1px solid #33333f; max-height: 160px; overflow-y: auto;
+    }
+    .library-header { display: flex; justify-content: space-between; color: #9fa6c0; font-size: 12px; font-weight: 600; margin-bottom: 6px; letter-spacing: 0.3px; }
+    .lib-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 8px; border-radius: 30px; background: #252530; margin-bottom: 4px;
+      border-left: 3px solid #4a5b8a; color: #d4daf0; font-size: 13px; cursor: pointer;
+      transition: 0.1s;
+    }
+    .lib-item:hover { background: #32324a; }
+    .lib-item i { color: #7f9cff; margin-right: 8px; }
+    .lib-folder { border-left-color: #b8a64a; background: #2a2a1f; }
+
+    /* footer */
+    .footer { margin-top: 14px; display: flex; justify-content: space-between; align-items: center; color: #70707e; font-size: 9px; border-top: 1px solid #25252e; padding-top: 12px; }
+    .dev-info { display: flex; align-items: center; gap: 10px; }
+    .dev-info img { width: 24px; height: 24px; border-radius: 40px; background: #3a3a4a; border: 1px solid #4d4d62; }
+    .dev-text strong { color: #b5b9cf; }
+    .small-mobile { font-size: 8px; color: #5d5d72; }
+    .app-name-foot { font-weight: 700; color: #bcc0d6; font-size: 11px; background: #21212b; padding: 2px 14px; border-radius: 40px; border: 1px solid #3b3b4b; }
+
+    /* mini mode */
+    .mini-mode .video-wrapper { aspect-ratio: 4/3; max-height: 140px; }
+    .mini-mode .dj-section, .mini-mode .voice-theme-row, .mini-mode .library-section, .mini-mode .quality-row { display: none; }
+    .mini-mode .ctrl-bar { gap: 2px; }
+    .mini-mode .ctrl-btn { width: 30px; height: 30px; font-size: 13px; }
+    .mini-mode .play-btn { width: 40px; }
+
+    /* fullscreen (native) */
+    .app-container:-webkit-full-screen { max-width: 100%; border-radius: 0; padding: 20px; }
+    .app-container:-moz-full-screen { max-width: 100%; border-radius: 0; padding: 20px; }
+    .app-container:fullscreen { max-width: 100%; border-radius: 0; padding: 20px; }
+
+    @media (max-width: 480px) { .ctrl-btn { width: 34px; height: 34px; font-size: 15px; } .play-btn { width: 44px; } }
+  </style>
+</head>
+<body>
+<div class="app-container" id="appContainer">
+  <!-- header -->
+  <div class="header-row">
+    <span class="app-title"><i class="fas fa-play-circle"></i> iVIDEO</span>
+    <button class="close-btn" id="closeAppBtn"><i class="fas fa-times"></i></button>
+  </div>
+
+  <!-- video -->
+  <div class="video-wrapper" id="videoWrapper">
+    <video id="videoPlayer" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" crossorigin="anonymous"></video>
+    <div class="audio-indicator" id="audioIndicator"><i class="fas fa-headphones"></i> Audio only</div>
+  </div>
+
+  <!-- controls -->
+  <div class="ctrl-bar">
+    <div class="ctrl-group">
+      <button class="ctrl-btn play-btn" id="playPauseBtn"><i class="fas fa-play"></i></button>
+      <button class="ctrl-btn" id="stopBtn"><i class="fas fa-stop"></i></button>
+      <button class="ctrl-btn" id="muteBtn"><i class="fas fa-volume-up"></i></button>
+    </div>
+    <div class="ctrl-group">
+      <button class="ctrl-btn fullscreen-btn" id="fullscreenBtn"><i class="fas fa-expand"></i></button>
+      <button class="ctrl-btn" id="audioModeToggle"><i class="fas fa-music"></i></button>
+      <button class="ctrl-btn" id="backToVideoBtn" style="background:#2e2e40;"><i class="fas fa-video"></i></button>
+      <button class="mini-toggle" id="miniToggle"><i class="fas fa-window-minimize"></i> Mini</button>
+    </div>
+  </div>
+
+  <!-- DJ -->
+  <div class="dj-section" id="djSection">
+    <div class="eq-row"><span class="eq-label"><i class="fas fa-wave-square"></i> Bass</span><input type="range" class="eq-slider" id="bassSlider" min="0" max="200" value="100"><span class="eq-value" id="bassVal">100</span></div>
+    <div class="eq-row"><span class="eq-label"><i class="fas fa-sliders-h"></i> Mid</span><input type="range" class="eq-slider" id="midSlider" min="0" max="200" value="100"><span class="eq-value" id="midVal">100</span></div>
+    <div class="eq-row"><span class="eq-label"><i class="fas fa-highlighter"></i> Treble</span><input type="range" class="eq-slider" id="trebleSlider" min="0" max="200" value="100"><span class="eq-value" id="trebleVal">100</span></div>
+    <div class="speed-row">
+      <span class="eq-label"><i class="fas fa-tachometer-alt"></i> Speed</span>
+      <div class="speed-btn-group">
+        <button class="speed-btn" data-speed="0.25">0.25</button><button class="speed-btn" data-speed="0.5">0.5</button>
+        <button class="speed-btn active" data-speed="1.0">1.0</button>
+        <button class="speed-btn" data-speed="1.5">1.5</button><button class="speed-btn" data-speed="2.0">2.0</button>
+        <button class="speed-btn" data-speed="3.0">3.0</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- voice & theme -->
+  <div class="voice-theme-row">
+    <select class="voice-select" id="voiceSelect">
+      <option value="none">🎤 Original</option><option value="robot">🤖 Robot</option><option value="child">🧒 Child</option>
+      <option value="old">👴 Old</option><option value="girl">👧 Girl</option><option value="boy">👦 Boy</option>
+      <option value="underwater">🌊 Underwater</option><option value="man">👨 Man</option><option value="women">👩 Women</option>
+      <option value="mobile">📱 Mobile</option>
+    </select>
+    <select class="theme-select" id="themeSelect">
+      <option value="dark">🌙 Dark</option><option value="red">🔴 Red</option><option value="blue">🔵 Blue</option>
+      <option value="yellow">🟡 Yellow</option><option value="green">🟢 Green</option><option value="pink">🌸 Pink</option>
+      <option value="purple">🟣 Purple</option>
+    </select>
+  </div>
+
+  <!-- QUALITY selector (new) -->
+  <div class="quality-row">
+    <span class="quality-label"><i class="fas fa-sliders-h"></i> Quality</span>
+    <div class="quality-btn-group" id="qualityGroup">
+      <button class="quality-btn" data-quality="144">144p</button>
+      <button class="quality-btn" data-quality="240">240p</button>
+      <button class="quality-btn" data-quality="360">360p</button>
+      <button class="quality-btn active" data-quality="720">720p</button>
+      <button class="quality-btn" data-quality="1080">1080p</button>
+      <button class="quality-btn" data-quality="2160">4K</button>
+      <button class="quality-btn" data-quality="4320">8K</button>
+    </div>
+  </div>
+
+  <!-- library (localStorage folder/list) -->
+  <div class="library-section" id="librarySection">
+    <div class="library-header"><span><i class="fas fa-folder-open"></i> Media library</span><span id="libCount">0 items</span></div>
+    <div id="libraryList"></div>
+  </div>
+
+  <!-- footer -->
+  <div class="footer">
+    <div class="dev-info"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Ccircle cx='15' cy='15' r='13' fill='%23333b55'/%3E%3Ctext x='8' y='22' font-family='Arial' font-size='14' fill='%23b0c0ff'%3ED%3C/text%3E%3C/svg%3E" alt="dev"><span class="dev-text"><strong>Divy</strong> <span class="small-mobile">+91 9369224174</span></span></div>
+    <span class="app-name-foot"><i class="fas fa-play-circle"></i> iVIDEO</span>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // DOM refs
+    const video = document.getElementById('videoPlayer');
+    const playBtn = document.getElementById('playPauseBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const muteBtn = document.getElementById('muteBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const closeBtn = document.getElementById('closeAppBtn');
+    const audioToggle = document.getElementById('audioModeToggle');
+    const backToVideo = document.getElementById('backToVideoBtn');
+    const audioIndicator = document.getElementById('audioIndicator');
+    const miniToggle = document.getElementById('miniToggle');
+    const appContainer = document.getElementById('appContainer');
+    const themeSelect = document.getElementById('themeSelect');
+    const voiceSelect = document.getElementById('voiceSelect');
+    const bassSlider = document.getElementById('bassSlider');
+    const midSlider = document.getElementById('midSlider');
+    const trebleSlider = document.getElementById('trebleSlider');
+    const bassVal = document.getElementById('bassVal');
+    const midVal = document.getElementById('midVal');
+    const trebleVal = document.getElementById('trebleVal');
+    const speedBtns = document.querySelectorAll('.speed-btn');
+    const qualityBtns = document.querySelectorAll('.quality-btn');
+    const libraryList = document.getElementById('libraryList');
+    const libCount = document.getElementById('libCount');
+
+    // state
+    let isAudioMode = false;
+    let isMini = false;
+    let audioCtx = null, sourceNode = null, gainNode = null;
+    let filterBass = null, filterMid = null, filterTreble = null;
+    let isAudioCtxReady = false;
+
+    // ---- local storage library ----
+    const STORAGE_KEY = 'ividoe_library';
+    let mediaItems = [];
+
+    function loadLibrary() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) mediaItems = JSON.parse(stored);
+        else {
+          mediaItems = [
+            { name: 'Big Buck Bunny', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', folder: 'Samples' },
+            { name: 'Elephant Dream', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', folder: 'Samples' },
+            { name: 'For Bigger Blazes', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', folder: 'Action' },
+          ];
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(mediaItems));
+        }
+      } catch(e) { mediaItems = []; }
+      renderLibrary();
+    }
+
+    function renderLibrary() {
+      libraryList.innerHTML = '';
+      if (!mediaItems.length) { libraryList.innerHTML = '<div class="lib-item" style="border-left-color:#666;color:#888;">No media, add via console: addMedia()</div>'; libCount.textContent = '0 items'; return; }
+      libCount.textContent = mediaItems.length + ' items';
+      const folders = {};
+      mediaItems.forEach(item => {
+        const f = item.folder || 'General';
+        if (!folders[f]) folders[f] = [];
+        folders[f].push(item);
+      });
+      for (let [folder, items] of Object.entries(folders)) {
+        const folderDiv = document.createElement('div');
+        folderDiv.className = 'lib-item lib-folder';
+        folderDiv.innerHTML = `<i class="fas fa-folder"></i> ${folder} (${items.length})`;
+        libraryList.appendChild(folderDiv);
+        items.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'lib-item';
+          div.innerHTML = `<i class="fas fa-play-circle"></i> ${item.name}`;
+          div.addEventListener('click', () => { video.src = item.url; video.play(); });
+          libraryList.appendChild(div);
+        });
+      }
+    }
+
+    window.addMedia = function(name, url, folder = 'General') {
+      mediaItems.push({ name, url, folder });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(mediaItems));
+      renderLibrary();
+    };
+
+    // ---- video controls ----
+    function updatePlayIcon() { playBtn.innerHTML = video.paused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>'; }
+    function togglePlay() { if (video.paused) video.play(); else video.pause(); }
+    video.addEventListener('play', updatePlayIcon);
+    video.addEventListener('pause', updatePlayIcon);
+    video.addEventListener('click', (e) => { if (!isAudioMode) togglePlay(); });
+    playBtn.addEventListener('click', togglePlay);
+    stopBtn.addEventListener('click', () => { video.pause(); video.currentTime = 0; updatePlayIcon(); });
+    muteBtn.addEventListener('click', () => { video.muted = !video.muted; muteBtn.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>'; });
+
+    // fullscreen
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        appContainer.requestFullscreen?.() || appContainer.webkitRequestFullscreen?.();
+      } else {
+        document.exitFullscreen?.() || document.webkitExitFullscreen?.();
+      }
+    });
+
+    // close / exit
+    closeBtn.addEventListener('click', () => {
+      if (confirm('Close iVIDEO?')) {
+        video.pause();
+        if (document.fullscreenElement) document.exitFullscreen?.();
+        appContainer.style.display = 'none';
+      }
+    });
+
+    // audio mode
+    audioToggle.addEventListener('click', () => {
+      isAudioMode = !isAudioMode;
+      audioIndicator.style.display = isAudioMode ? 'flex' : 'none';
+      audioToggle.innerHTML = isAudioMode ? '<i class="fas fa-video"></i>' : '<i class="fas fa-music"></i>';
+      backToVideo.style.display = isAudioMode ? 'inline-flex' : 'inline-flex';
+      if (isAudioMode) { video.muted = false; } 
+    });
+    backToVideo.addEventListener('click', () => {
+      if (isAudioMode) {
+        isAudioMode = false;
+        audioIndicator.style.display = 'none';
+        audioToggle.innerHTML = '<i class="fas fa-music"></i>';
+      }
+    });
+
+    // mini mode
+    miniToggle.addEventListener('click', () => {
+      isMini = !isMini;
+      appContainer.classList.toggle('mini-mode', isMini);
+      miniToggle.innerHTML = isMini ? '<i class="fas fa-window-maximize"></i> Maxi' : '<i class="fas fa-window-minimize"></i> Mini';
+    });
+
+    // theme
+    themeSelect.addEventListener('change', function() {
+      appContainer.className = 'app-container theme-' + this.value;
+    });
+    appContainer.className = 'app-container theme-dark';
+
+    // ---- QUALITY (pixel / resolution) ----
+    qualityBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        qualityBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const targetRes = parseInt(this.dataset.quality);
+        // we simulate by setting video width/height via CSS? we use object-fit and scale
+        // but we also can adjust video dimensions
+        const videoWrapper = document.getElementById('videoWrapper');
+        // we scale the video element to simulate resolution (or we could change src)
+        // For demonstration, we adjust the video's style width/height but keep aspect ratio
+        // Better: we resize the wrapper's scale? we use transform
+        const baseWidth = 1280; // reference
+        const scale = targetRes / 720; // relative to 720p
+        // we apply scale to video element (preserve aspect ratio)
+        video.style.transform = `scale(${Math.min(scale, 2.0)})`; // cap for visual
+        video.style.transformOrigin = 'center center';
+        // also adjust object-fit to contain
+        video.style.objectFit = 'contain';
+        // show current res
+        console.log(`Quality set to ${targetRes}p`);
+      });
+    });
+    // set default 720p
+    document.querySelector('.quality-btn[data-quality="720"]')?.classList.add('active');
+
+    // ---- voice & EQ ----
+    function applyVoiceEffect(type) {
+      if (!audioCtx) {
+        try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ return; }
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (sourceNode) { try { sourceNode.disconnect(); } catch(e) {} }
+      sourceNode = audioCtx.createMediaElementSource(video);
+      gainNode = audioCtx.createGain();
+      filterBass = audioCtx.createBiquadFilter(); filterBass.type = 'lowshelf'; filterBass.frequency.value = 200;
+      filterMid = audioCtx.createBiquadFilter(); filterMid.type = 'peaking'; filterMid.frequency.value = 1000; filterMid.Q.value = 1;
+      filterTreble = audioCtx.createBiquadFilter(); filterTreble.type = 'highshelf'; filterTreble.frequency.value = 3000;
+
+      filterBass.gain.value = (bassSlider.value - 100) * 0.8;
+      filterMid.gain.value = (midSlider.value - 100) * 0.6;
+      filterTreble.gain.value = (trebleSlider.value - 100) * 0.7;
+
+      sourceNode.connect(filterBass);
+      filterBass.connect(filterMid);
+      filterMid.connect(filterTreble);
+      filterTreble.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      if (type === 'robot') { filterBass.gain.value = -10; filterMid.gain.value = 15; filterTreble.gain.value = 20; }
+      else if (type === 'child') { filterBass.gain.value = -12; filterMid.gain.value = 8; filterTreble.gain.value = 18; }
+      else if (type === 'old') { filterBass.gain.value = 12; filterMid.gain.value = -8; filterTreble.gain.value = -12; }
+      else if (type === 'girl') { filterBass.gain.value = -8; filterMid.gain.value = 5; filterTreble.gain.value = 22; }
+      else if (type === 'boy') { filterBass.gain.value = -4; filterMid.gain.value = 2; filterTreble.gain.value = 10; }
+      else if (type === 'underwater') {
+        filterBass.gain.value = 18; filterMid.gain.value = -10; filterTreble.gain.value = -25;
+        const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 800;
+        filterTreble.disconnect(); filterTreble.connect(lp); lp.connect(gainNode);
+      } else if (type === 'man') { filterBass.gain.value = 8; filterMid.gain.value = -2; filterTreble.gain.value = -6; }
+      else if (type === 'women') { filterBass.gain.value = -6; filterMid.gain.value = 6; filterTreble.gain.value = 14; }
+      else if (type === 'mobile') {
+        filterBass.gain.value = -20; filterMid.gain.value = 20; filterTreble.gain.value = 10;
+        const bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1000; bp.Q.value = 0.8;
+        filterTreble.disconnect(); filterTreble.connect(bp); bp.connect(gainNode);
+      } else { filterBass.gain.value = 0; filterMid.gain.value = 0; filterTreble.gain.value = 0; }
+      updateEQFromSliders();
+      isAudioCtxReady = true;
+    }
+
+    function updateEQFromSliders() {
+      if (!filterBass || !filterMid || !filterTreble) return;
+      filterBass.gain.value = (bassSlider.value - 100) * 0.8;
+      filterMid.gain.value = (midSlider.value - 100) * 0.6;
+      filterTreble.gain.value = (trebleSlider.value - 100) * 0.7;
+      bassVal.textContent = bassSlider.value;
+      midVal.textContent = midSlider.value;
+      trebleVal.textContent = trebleSlider.value;
+    }
+
+    voiceSelect.addEventListener('change', function() {
+      if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ return; } }
+      applyVoiceEffect(this.value);
+    });
+
+    [bassSlider, midSlider, trebleSlider].forEach((slider, idx) => {
+      slider.addEventListener('input', function() {
+        const val = this.value;
+        if (idx === 0) bassVal.textContent = val;
+        else if (idx === 1) midVal.textContent = val;
+        else trebleVal.textContent = val;
+        if (filterBass && filterMid && filterTreble) {
+          updateEQFromSliders();
+          const voice = voiceSelect.value;
+          if (voice !== 'none') applyVoiceEffect(voice);
+        }
+      });
+    });
+
+    // speed
+    speedBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        speedBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        video.playbackRate = parseFloat(this.dataset.speed);
+      });
+    });
+
+    // init audio context on play
+    video.addEventListener('play', function() {
+      if (!audioCtx) {
+        try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
+      }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      if (!isAudioCtxReady && audioCtx) {
+        applyVoiceEffect(voiceSelect.value);
+      }
+    });
+
+    // ---- startup ----
+    loadLibrary();
+    video.playbackRate = 1.0;
+    appContainer.className = 'app-container theme-dark';
+    console.log('iVIDEO loaded · localStorage ready');
+    console.log('📁 Use addMedia(name, url, folder) to add items');
+  })();
+</script>
+</body>
+</html>
